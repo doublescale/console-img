@@ -20,20 +20,20 @@ putImageFile :: FilePath -> IO ()
 putImageFile fileName = do
   eitherImage <- readImage fileName
   case eitherImage of
-    Right dynImage -> putStr (renderRgbMatrix (imageToMatrix dynImage))
+    Right dynImage -> putStr (renderTransposedMatrix (imageToMatrix dynImage))
     Left errString -> do
       putStrLn errString
       exitFailure
 
 imageToMatrix :: DynamicImage -> [[PixelRGB8]]
 imageToMatrix dynImage =
-  [[pixelAt img x y | x <- [0 .. imageWidth - 1]] | y <- [0 .. imageHeight - 1]]
+  [[pixelAt img x y | y <- [0 .. imageHeight - 1]] | x <- [0 .. imageWidth - 1]]
   where
     img@Image {imageHeight, imageWidth} = convertRGB8 dynImage
 
-renderRgbMatrix :: [[PixelRGB8]] -> String
-renderRgbMatrix =
-  unlines . map concat . transpose . map colorPairwise . transpose
+renderTransposedMatrix :: [[PixelRGB8]] -> String
+renderTransposedMatrix =
+  unlines . map concat . transpose . map colorPairwise
   where
     colorPairwise (a:b:xs) = [ansiColoredHalfBlocks a b] ++ colorPairwise xs
     colorPairwise [a] = [ansiColoredHalfBlocks a (PixelRGB8 0 0 0)]

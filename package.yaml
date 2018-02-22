@@ -1,6 +1,8 @@
 name: console-img
 version: 0.1.0.0
 synopsis: View an image in the console
+license: MIT
+license-file: LICENSE
 author: doublescale
 maintainer: doublescale@tutanota.com
 

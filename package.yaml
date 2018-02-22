@@ -15,4 +15,3 @@ executable:
   dependencies:
     - base
     - JuicyPixels
-    - vector

@@ -16,3 +16,11 @@ Example:
 ```bash
 console-img my-picture.png
 ```
+
+The current version does no rescaling, so if you have a large image you
+must downscale it manually to fit the terminal.
+For example, if you have ImageMagick:
+
+```bash
+console-img <(convert big-image.png -resize 80 png:-)
+```

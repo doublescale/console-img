@@ -16,4 +16,5 @@ executable:
     - -O2
   dependencies:
     - base
+    - bytestring
     - JuicyPixels

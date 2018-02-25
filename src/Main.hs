@@ -1,9 +1,12 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
 import Codec.Picture
-import Data.List
+import qualified Data.ByteString.Lazy as BS
+import qualified Data.ByteString.Builder as BS
+import Data.Monoid
 import System.Environment
 import System.Exit
 
@@ -20,19 +23,19 @@ putImageFile :: FilePath -> IO ()
 putImageFile fileName = do
   eitherImage <- readImage fileName
   case eitherImage of
-    Right dynImage -> putStr (renderImage dynImage)
+    Right dynImage -> BS.putStr (BS.toLazyByteString (renderImage dynImage))
     Left errString -> do
       putStrLn errString
       exitFailure
 
-renderImage :: DynamicImage -> String
+renderImage :: DynamicImage -> BS.Builder
 renderImage dynImage =
-  unlines
-    [ concat
+  mconcat
+    [ mconcat
         [ ansiColoredHalfBlocks (paddedAt x y) (paddedAt x (y + 1))
         | x <- [0 .. imageWidth - 1]
         ]
-      ++ "\ESC[0m"
+      <> "\ESC[0m\n"
     | y <- [0,2 .. imageHeight - 1]
     ]
   where
@@ -41,8 +44,15 @@ renderImage dynImage =
       | y < imageHeight = pixelAt img x y
       | otherwise = PixelRGB8 0 0 0
 
-ansiColoredHalfBlocks :: PixelRGB8 -> PixelRGB8 -> String
+ansiColoredHalfBlocks :: PixelRGB8 -> PixelRGB8 -> BS.Builder
 ansiColoredHalfBlocks topCol botCol =
-  "\ESC[48;2;" ++ triple topCol ++ ";38;2;" ++ triple botCol ++ "m\9604"
+  "\ESC[48;2;" <> triple topCol <> ";38;2;" <> triple botCol <> "m\9604"
   where
-    triple (PixelRGB8 r g b) = intercalate ";" (map show [r, g, b])
+    triple (PixelRGB8 r g b) =
+      mconcat
+        [ BS.word8Dec r
+        , BS.charUtf8 ';'
+        , BS.word8Dec g
+        , BS.charUtf8 ';'
+        , BS.word8Dec b
+        ]

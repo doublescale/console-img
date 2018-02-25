@@ -20,24 +20,26 @@ putImageFile :: FilePath -> IO ()
 putImageFile fileName = do
   eitherImage <- readImage fileName
   case eitherImage of
-    Right dynImage -> putStr (renderTransposedMatrix (imageToMatrix dynImage))
+    Right dynImage -> putStr (renderImage dynImage)
     Left errString -> do
       putStrLn errString
       exitFailure
 
-imageToMatrix :: DynamicImage -> [[PixelRGB8]]
-imageToMatrix dynImage =
-  [[pixelAt img x y | y <- [0 .. imageHeight - 1]] | x <- [0 .. imageWidth - 1]]
+renderImage :: DynamicImage -> String
+renderImage dynImage =
+  unlines
+    [ concat
+        [ ansiColoredHalfBlocks (paddedAt x y) (paddedAt x (y + 1))
+        | x <- [0 .. imageWidth - 1]
+        ]
+      ++ "\ESC[0m"
+    | y <- [0,2 .. imageHeight - 1]
+    ]
   where
     img@Image {imageHeight, imageWidth} = convertRGB8 dynImage
-
-renderTransposedMatrix :: [[PixelRGB8]] -> String
-renderTransposedMatrix =
-  unlines . map ((++ "\ESC[0m") . concat) . transpose . map colorPairwise
-  where
-    colorPairwise (a:b:xs) = [ansiColoredHalfBlocks a b] ++ colorPairwise xs
-    colorPairwise [a] = [ansiColoredHalfBlocks a (PixelRGB8 0 0 0)]
-    colorPairwise [] = []
+    paddedAt x y
+      | y < imageHeight = pixelAt img x y
+      | otherwise = PixelRGB8 0 0 0
 
 ansiColoredHalfBlocks :: PixelRGB8 -> PixelRGB8 -> String
 ansiColoredHalfBlocks topCol botCol =

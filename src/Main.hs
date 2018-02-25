@@ -33,7 +33,7 @@ imageToMatrix dynImage =
 
 renderTransposedMatrix :: [[PixelRGB8]] -> String
 renderTransposedMatrix =
-  unlines . map concat . transpose . map colorPairwise
+  unlines . map ((++ "\ESC[0m") . concat) . transpose . map colorPairwise
   where
     colorPairwise (a:b:xs) = [ansiColoredHalfBlocks a b] ++ colorPairwise xs
     colorPairwise [a] = [ansiColoredHalfBlocks a (PixelRGB8 0 0 0)]
@@ -41,6 +41,6 @@ renderTransposedMatrix =
 
 ansiColoredHalfBlocks :: PixelRGB8 -> PixelRGB8 -> String
 ansiColoredHalfBlocks topCol botCol =
-  "\ESC[48;2;" ++ triple topCol ++ ";38;2;" ++ triple botCol ++ "m\9604\ESC[0m"
+  "\ESC[48;2;" ++ triple topCol ++ ";38;2;" ++ triple botCol ++ "m\9604"
   where
     triple (PixelRGB8 r g b) = intercalate ";" (map show [r, g, b])

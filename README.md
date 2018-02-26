@@ -1,6 +1,8 @@
 # console-img
 Print an image to the console using RGB ANSI codes.
 
+![Example result](sample/happy-dragon-result.png)
+
 ## Build
 Have [Stack](https://docs.haskellstack.org/) installed.
 
